@@ -1,7 +1,10 @@
 <div align="center">
 
-# 📸 InstaLocalPlanner
+
+<img src="screenshot/logotype.jpg" alt="logotype" width="220">
+
 > Local-first Instagram editorial planner
+
 **✨[Sponsor this project](https://www.paypal.com/paypalme/NyxAwroo)**
 
 <p>
