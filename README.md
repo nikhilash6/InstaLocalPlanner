@@ -14,8 +14,8 @@ InstaLocalPlanner est un planificateur local libre pour organiser, rédiger, pro
 
 | | |
 |---|---|
-| ![Grid preview / Aperçu grille](SCREENSHOT_URL_GRILLE) | ![Editorial planning / Planning éditorial](SCREENSHOT_URL_PLANNING) |
-| ![Post editor / Éditeur de publication](SCREENSHOT_URL_EDITEUR) | ![Profile photo gallery / Galerie photos de profil](SCREENSHOT_URL_GALERIE) |
+| ![Grid preview / Aperçu grille](screenshot/v0.4.2/1.png) | ![Editorial planning / Planning éditorial](screenshot/v0.4.2/3.png) |
+| ![Post editor / Éditeur de publication](https://github.com/NyxAwroo/InstaLocalPlanner/blob/7edcb4ae329fd26a66acc5d63b66ad951228e98d/screenshot/2026-05-20%2021_57_10-InstaLocalPlanner%20-%20Personnel%20%E2%80%93%20Microsoft%E2%80%8B%20Edge.png) | ![Profile photo gallery / Galerie photos de profil](screenshot/v0.4.2/4.png) |
 
 ---
 
@@ -64,8 +64,10 @@ L'assistant IA fonctionne **100 % en local** avec LM Studio ou Ollama, et garde 
 1. Lancer LM Studio et charger un modèle local.
 2. Activer le serveur local OpenAI-compatible.
 3. Dans InstaLocalPlanner, choisir `LM Studio local`.
-4. URL : `http://127.0.0.1:1234/v1`.
+4. URL : `see >> screenshot/LM Studio find URL for API.png`.
 5. Laisser le champ modèle vide pour utiliser automatiquement le premier modèle chargé.
+
+
 
 **Ollama :** même principe avec votre URL Ollama habituelle et le nom du modèle local.
 
