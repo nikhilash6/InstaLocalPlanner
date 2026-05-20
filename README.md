@@ -1,16 +1,25 @@
-# InstaLocalPlanner
+<div align="center">
 
-> Local-first Instagram editorial planner — French & English / Français & Anglais
+# 📸 InstaLocalPlanner
+> Local-first Instagram editorial planner
+**✨[Sponsor this project](https://www.paypal.com/paypalme/NyxAwroo)**
+
+<p>
+  <img src="https://img.shields.io/badge/Langue-Français-007acc?style=for-the-badge" alt="Langue Français">
+  <img src="https://img.shields.io/badge/Language-English-007acc?style=for-the-badge" alt="Language English">
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white" alt="Windows">
+</p>
+
 
 InstaLocalPlanner is a free, local planner to organize, write, schedule and prepare Instagram posts before publishing them manually. Your content, media, captions and profile photos stay on your machine.
 
 InstaLocalPlanner est un planificateur local libre pour organiser, rédiger, programmer et préparer ses publications Instagram avant de les publier à la main. Vos contenus, médias, légendes et photos de profil restent sur votre machine.
 
----
 
-## Screenshots / Captures d'écran
-
-> Replace the placeholders below with your own image links / Remplacer les liens ci-dessous par vos propres images.
+## Screenshots / Captures d'écran </div>
 
 | | |
 |---|---|
@@ -67,7 +76,7 @@ L'assistant IA fonctionne **100 % en local** avec LM Studio ou Ollama, et garde 
 4. URL : `see >> screenshot/LM Studio find URL for API.png`.
 5. Laisser le champ modèle vide pour utiliser automatiquement le premier modèle chargé.
 
-
+<img src="screenshot/LM Studio find URL for API.png" alt="LM Studio guide" width="820">
 
 **Ollama :** même principe avec votre URL Ollama habituelle et le nom du modèle local.
 
@@ -201,8 +210,11 @@ The AI assistant works **100% locally** with LM Studio or Ollama, keeping your d
 1. Launch LM Studio and load a local model.
 2. Enable the OpenAI-compatible local server.
 3. In InstaLocalPlanner, select `LM Studio local`.
-4. URL: `http://127.0.0.1:1234/v1`.
+4. URL: `see >> screenshot/LM Studio find URL for API.png`.
 5. Leave the model field empty to auto-use the first loaded model.
+
+<img src="screenshot/LM Studio find URL for API.png" alt="LM Studio guide" width="820">
+
 
 **Ollama:** same idea with your usual Ollama URL and local model name.
 
@@ -275,22 +287,19 @@ data/database.example.json
 data/safety.example.json
 ```
 
+---
 ### 💛 Support the project
-
 InstaLocalPlanner is a free, open project developed on personal time. If it helps your Instagram workflow, you can support its development with a donation.
 
-**Donation link (PayPal):** `PAYPAL_LINK_TO_REPLACE`
+**Donation link:** [PayPal](https://www.paypal.com/paypalme/NyxAwroo) 
+// Donations help fund development time, testing, documentation and future improvements. Huge thanks to anyone who contributes 🙏
 
-Donations help fund development time, testing, documentation and future improvements.
-
-Huge thanks to anyone who contributes 🙏
+---
 
 ### Disclaimer
-
 InstaLocalPlanner is not affiliated with Instagram, Meta, Google Drive, LM Studio, Ollama, OpenAI, Anthropic, Google or DeepSeek. The app prepares content locally and does not replace official publishing tools.
 
 ---
 
 ## License
-
 This project is released as free, open software. Feel free to use it, fork it, translate it and improve it for your own Instagram workflow.
