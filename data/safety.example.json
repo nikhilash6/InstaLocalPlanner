@@ -1,0 +1,30 @@
+{
+    "banned_hashtags": [],
+    "hashtag_folders": {
+        "Général": []
+    },
+    "sensitive_words": [],
+    "snippets": {},
+    "ai_prompts": [
+        {
+            "name": "Ton de marque",
+            "prompt": "Garde un style chaleureux, concret, jamais trop vendeur."
+        },
+        {
+            "name": "Style court",
+            "prompt": "Réécris en version courte, directe et naturelle."
+        }
+    ],
+    "calendar_markers_initialized": true,
+    "calendar_markers": [
+        {
+            "name": "Noël",
+            "color": "#22c55e",
+            "start": "2026-12-25",
+            "end": "2026-12-25",
+            "notes": "Jour férié"
+        }
+    ],
+    "profile_photo_plans": [],
+    "profile_photo_gallery": []
+}

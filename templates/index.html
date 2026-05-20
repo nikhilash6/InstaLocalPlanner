@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InstaLocalPlanner</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <link rel="stylesheet" href="/static/css/style.css?v={{ v }}">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="dark-mode">
+
+    <div id="toast-container"></div>
+
+    <div id="settingsModal" class="modal-overlay hidden">
+            <div class="modal-container">
+                
+                <div class="modal-sidebar">
+                    <div class="sidebar-header" data-i18n="settings.title">⚙️ Réglages</div>
+                    
+                    <div class="sidebar-group" data-i18n="settings.group_general">Général</div>
+                    <div class="nav-item active" onclick="switchTab('tab-profil', this)" data-i18n="settings.profile">👤 Profil</div>
+                    <div class="nav-item" onclick="switchTab('tab-profile-photos', this)" data-i18n="settings.profile_photo_gallery">Galerie profils</div>
+
+                    <div class="sidebar-group" data-i18n="settings.group_automation">Automatisation</div>
+                    <div class="nav-item" onclick="switchTab('tab-ai', this)" data-i18n="settings.ai">IA</div>
+                    <div class="nav-item" onclick="switchTab('tab-organization', this)" data-i18n="settings.organization">Organisation</div>
+                    <div class="nav-item" onclick="switchTab('tab-hashtags', this)" data-i18n="settings.hashtags">#️⃣ Hashtags</div>
+                    <div class="nav-item" onclick="switchTab('tab-censure', this)" data-i18n="settings.censure">🚫 Censure</div>
+                </div>
+
+                <div class="settings-content">
+                    <button class="close-btn" onclick="closeSettings()">×</button>
+
+                    <div id="tab-profil" class="tab-section active">
+                        <h2 data-i18n="settings.profile_heading">Profil</h2>
+                        <div class="form-group">
+                            <label data-i18n="settings.account">Compte</label>
+                            <div class="account-row">
+                                <select id="account-select" class="app-select"></select>
+                                <button id="btn-create-account" class="btn-secondary" data-i18n="settings.account_create">Nouveau compte</button>
+                                <button id="btn-delete-account" class="btn-danger" data-i18n="settings.account_delete">Supprimer profil</button>
+                            </div>
+                            <div class="hint" data-i18n="settings.account_delete_hint">Supprime le profil actif après archivage local.</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="settings.username">Pseudo</label>
+                            <input type="text" id="inputPseudo" placeholder="Votre pseudo..." data-i18n-placeholder="placeholders.username">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="settings.bio">Bio</label>
+                            <textarea id="inputBio" maxlength="150" placeholder="Votre biographie..." data-i18n-placeholder="placeholders.bio"></textarea>
+                            <div class="hint"><span id="bio-counter">0</span>/150</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="settings.avatar_url">Avatar URL</label>
+                            <input type="text" id="inputAvatar" placeholder="/static/uploads/...">
+                            <div id="avatar-drop-zone" class="mini-drop-zone" data-i18n="settings.avatar_drop">Glisser un avatar ici</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="settings.language">Langue</label>
+                            <div class="account-row">
+                                <select id="language-select" class="app-select"></select>
+                                <button id="btn-import-language" class="btn-secondary" data-i18n="settings.import_language">Importer JSON</button>
+                            </div>
+                            <input id="language-file-input" type="file" accept="application/json,.json" hidden>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-primary" onclick="saveSettings()" data-i18n="settings.save_profile">Enregistrer le profil</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-profile-photos" class="tab-section">
+                        <h2 data-i18n="settings.profile_photo_gallery">Galerie photos de profil</h2>
+                        <div class="profile-gallery-import">
+                            <div id="profile-gallery-drop-zone" class="mini-drop-zone" data-i18n="profile_gallery.drop_hint">Glisser une photo de profil ici</div>
+                            <div class="profile-gallery-form">
+                                <select id="profile-gallery-kind" class="app-select">
+                                    <option value="unscheduled" data-i18n="profile_gallery.unscheduled">Nouvelle non programmée</option>
+                                    <option value="scheduled" data-i18n="profile_gallery.scheduled">Profil éphémère programmé</option>
+                                </select>
+                                <input id="profile-gallery-date" type="date">
+                                <input id="profile-gallery-note" type="text" data-i18n-placeholder="profile_gallery.note_placeholder" placeholder="Note courte">
+                            </div>
+                            <input id="profile-gallery-input" type="file" accept="image/*" multiple hidden>
+                        </div>
+                        <div id="profile-gallery-content" class="profile-gallery-content"></div>
+                        <div class="profile-gallery-maintenance">
+                            <button type="button" class="btn-secondary small" id="profile-gallery-cleanup-btn" data-i18n="profile_gallery.cleanup_dupes">Nettoyer les doublons</button>
+                            <small class="profile-gallery-maintenance-hint" data-i18n="profile_gallery.cleanup_hint">Scanne les dossiers et regroupe les photos identiques.</small>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-primary" onclick="saveSettings()" data-i18n="common.save">Enregistrer</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-ai" class="tab-section">
+                        <h2 data-i18n="ai.settings_title">Assistant IA</h2>
+                        <div class="form-group">
+                            <label data-i18n="ai.provider">Fournisseur</label>
+                            <select id="ai-provider" class="app-select">
+                                <option value="ollama">Ollama local</option>
+                                <option value="lmstudio">LM Studio local</option>
+                                <option value="openai">OpenAI / ChatGPT</option>
+                                <option value="claude">Claude</option>
+                                <option value="gemini">Gemini</option>
+                                <option value="deepseek">DeepSeek</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="ai.model">Modèle</label>
+                            <input type="text" id="ai-model" placeholder="Optionnel pour LM Studio, sinon id du modèle..." data-i18n-placeholder="ai.model_placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="ai.base_url">URL locale / API compatible</label>
+                            <input type="text" id="ai-base-url" placeholder="http://127.0.0.1:1234/v1">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="ai.api_key">Clé API</label>
+                            <input type="password" id="ai-api-key" placeholder="sk-...">
+                            <div class="hint" data-i18n="ai.api_key_hint">Laisser vide pour Ollama/LM Studio local.</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="ai.prompt_library">Bibliothèque de consignes</label>
+                            <textarea id="ai-prompts" rows="6" placeholder="Ton de marque|Garde un style chaleureux, concret, jamais trop vendeur.&#10;Style court|Réécris en version courte, directe et naturelle." data-i18n-placeholder="ai.prompt_library_placeholder"></textarea>
+                            <div class="hint" data-i18n="ai.prompt_library_hint">Une consigne par ligne : nom|prompt</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-primary" onclick="saveSettings()" data-i18n="ai.save_settings">Enregistrer l'IA</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-organization" class="tab-section">
+                        <h2 data-i18n="settings.organization_heading">Organisation éditoriale</h2>
+                        <div class="form-group">
+                            <label data-i18n="organization.statuses">Statuts personnalisés</label>
+                            <textarea id="org-statuses" placeholder="draft|🔴 Draft&#10;writing|🟡 Rédaction&#10;ready|🟢 Prêt"></textarea>
+                            <div class="hint" data-i18n="organization.statuses_hint">Un statut par ligne : code|libellé</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="organization.tags">Tags internes</label>
+                            <textarea id="org-tags" placeholder="promo, coulisses, tuto, témoignage"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="organization.campaigns">Collections / campagnes</label>
+                            <textarea id="org-campaigns" placeholder="Lancement été|#4ec9b0|2026-06-01|2026-06-30|Objectif|Notes&#10;Témoignages|#c586c0|||Preuve sociale|"></textarea>
+                            <div class="hint" data-i18n="organization.campaigns_hint">Une campagne par ligne : nom|couleur|début|fin|objectif|notes</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="organization.templates">Bibliothèque de modèles</label>
+                            <textarea id="org-templates" placeholder="Annonce|Nouveauté : ...&#10;Storytelling|Aujourd'hui, je veux vous raconter..."></textarea>
+                            <div class="hint" data-i18n="organization.templates_hint">Un modèle par ligne : nom|texte de légende</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="organization.goals">Objectifs de fréquence</label>
+                            <textarea id="org-goals" placeholder="posts|3|week&#10;reels|2|week"></textarea>
+                            <div class="hint" data-i18n="organization.goals_hint">Un objectif par ligne : nom|nombre|week ou month</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="organization.calendar_markers">Repères calendrier</label>
+                            <textarea id="org-calendar-markers" placeholder="Noël|#22c55e|2026-12-25|2026-12-25|Jour férié|"></textarea>
+                            <div class="hint" data-i18n="organization.calendar_markers_hint">Un repère par ligne : nom|couleur|début|fin|notes|type optionnel</div>
+                            <div class="tools-row template-actions">
+                                <button id="btn-add-marker" class="btn-secondary small" data-i18n="organization.add_marker">Ajouter repère</button>
+                                <button id="btn-add-marker-separator" class="btn-secondary small" data-i18n="organization.add_separator">Ajouter séparateur</button>
+                                <button id="btn-export-markers" class="btn-secondary small" data-i18n="organization.export_markers">Exporter JSON</button>
+                                <button id="btn-import-markers" class="btn-secondary small" data-i18n="organization.import_markers">Importer JSON</button>
+                            </div>
+                            <div id="calendar-marker-editor" class="calendar-marker-editor"></div>
+                            <input id="markers-file-input" type="file" accept="application/json,.json" hidden>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="organization.profile_photo_plans">Photos de profil planifiées</label>
+                            <textarea id="org-profile-photo-plans" placeholder="2026-06-01|/static/uploads/Photo profils - nouvelles non programmees/avatar.jpg|Avatar été"></textarea>
+                            <div class="hint" data-i18n="organization.profile_photo_plans_hint">Une photo par ligne : date|url|note</div>
+                            <div class="tools-row template-actions">
+                                <button id="btn-plan-current-avatar" class="btn-secondary small" data-i18n="organization.plan_current_avatar">Planifier avatar actuel</button>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-primary" onclick="saveSettings()" data-i18n="common.save">Enregistrer</button>
+                        </div>
+                    </div>
+
+                    <div id="tab-hashtags" class="tab-section">
+                        <div class="hashtag-manager-layout">
+                            <div class="folder-col">
+                                <div class="col-header">
+                                    <h3 data-i18n="hashtags.folders">📂 Dossiers</h3>
+                                    <button class="btn-icon small" onclick="createFolder()">add</button>
+                                </div>
+                                <ul id="folder-list" class="folder-list">
+                                    </ul>
+                            </div>
+
+                            <div class="tags-col">
+                                <div class="col-header">
+                                    <h3 id="current-folder-title" data-i18n="hashtags.select_folder">Sélectionnez un dossier</h3>
+                                    <div class="search-bar">
+                                        <input type="text" id="search-tag" placeholder="🔍 Filtrer..." data-i18n-placeholder="placeholders.filter" onkeyup="filterTags(this.value)">
+                                    </div>
+                                </div>
+                                
+                                <div class="smart-input-area">
+                                    <textarea id="text-input-hashtags" placeholder="Ajouter tags ici..." data-i18n-placeholder="placeholders.add_tags"></textarea>
+                                </div>
+
+                                <div id="container-hashtags" class="tags-container"></div>
+                                
+                                <div class="actions-footer">
+                                    <button class="btn-secondary" onclick="copyCurrentTags()" data-i18n="hashtags.copy_folder">📋 Copier le dossier</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-censure" class="tab-section">
+                        <div class="section-header">
+                            <h2><span data-i18n="censure.title">Mots Censurés</span> <span id="count-censure" class="count">(0)</span></h2>
+                            <div class="actions">
+                                <button class="btn-danger" onclick="clearTags('censure')" data-i18n="common.clear_all">🗑️ Tout supprimer</button>
+                            </div>
+                        </div>
+                        
+                        <div class="smart-input-area">
+                            <textarea id="text-input-censure" placeholder="Mots à bloquer (ex: arnaque, spam...)" data-i18n-placeholder="placeholders.safety_words"></textarea>
+                            <div class="hint" data-i18n="censure.enter_hint">Entrée pour valider.</div>
+                        </div>
+
+                        <div id="container-censure" class="tags-container censure-mode">
+                        </div>
+                    </div>
+                </div><!-- /.settings-content -->
+            </div><!-- /.modal-container -->
+    </div><!-- /#settingsModal -->
+
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="header-left">
+                    <button class="btn-icon danger" id="btn-delete-post" title="Supprimer">delete</button>
+                    <button class="btn-icon" id="btn-duplicate-post" title="Dupliquer">content_copy</button>
+                    <button class="btn-icon" id="btn-smart-duplicate-post" title="Duplication intelligente">auto_awesome</button>
+                    <select id="post-status-select" class="status-select">
+                        <option value="draft" data-i18n="status.draft">🔴 Draft</option>
+                        <option value="writing" data-i18n="status.writing">🟡 Rédaction</option>
+                        <option value="ready" data-i18n="status.ready">🟢 Prêt</option>
+                    </select>
+                </div>
+                    <div class="modal-tabs">
+                        <button class="tab-btn active" data-target="tab-edit" data-i18n="tabs.edit">Rédaction & SEO</button>
+                        <button class="tab-btn" data-target="tab-media" data-i18n="tabs.media">Média</button>
+                        <button class="tab-btn" data-target="tab-mobile" data-i18n="tabs.mobile_preview">Prévisualisation mobile</button>
+                        <button class="tab-btn" data-target="tab-export" data-i18n="tabs.export">Export</button>
+                    </div>
+                <button class="btn-primary" id="btn-save-post" data-i18n="common.save">Enregistrer</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="modal-left-col">
+                    <div class="preview-area">
+                        <img id="main-preview-img" src="">
+                        <video id="main-preview-video" controls class="hidden"></video>
+                    </div>
+                    <div class="carousel-sorter">
+                        <label>Carrousel (Glisser-Déposer)</label>
+                        <div id="carousel-thumbnails" class="thumb-list"></div>
+                    </div>
+                </div>
+
+                <div class="modal-right-col">
+                    
+                    <div id="tab-edit" class="tab-content active">
+                        <div id="row-title-ghost" class="input-group hidden">
+                            <label data-i18n="post.note_title">Titre de la Note</label>
+                            <input type="text" id="inp-title" placeholder="Titre visible sur la grille..." data-i18n-placeholder="placeholders.visible_title" style="font-weight: bold; font-size: 16px;">
+                        </div>
+                        <div class="seo-box">
+                            <div class="seo-header">
+                                <span><span data-i18n="seo.score">Score SEO</span>: <strong id="seo-score">0/100</strong></span>
+                                <div class="progress-bg"><div id="seo-progress" class="progress-fill"></div></div>
+                            </div>
+                            <ul class="seo-criteria">
+                                <li id="seo-len" data-i18n="seo.length">📏 Longueur (50-2200)</li>
+                                <li id="seo-tags" data-i18n="seo.hashtags">#️⃣ Hashtags (5-30)</li>
+                                <li id="seo-que" data-i18n="seo.question">❓ Question posée</li>
+                                <li id="seo-fmt" data-i18n="seo.format">¶ Paragraphes aérés</li>
+                            </ul>
+                        </div>
+
+                        <div class="input-group">
+                            <label><span data-i18n="post.caption">Légende</span> <span id="counter-caption">0/2200</span></label>
+                            <textarea id="inp-caption" class="smart-area" placeholder="Écrivez ici..." data-i18n-placeholder="placeholders.write_here"></textarea>
+                            <div id="censure-box" class="censure-box hidden"></div>
+                            <div class="quick-ban-row">
+                                <input type="text" id="inp-quick-ban" placeholder="Nouveau mot à bannir..." data-i18n-placeholder="placeholders.new_safety_word" class="small-input">
+                                <button id="btn-quick-ban" class="btn-secondary small" data-i18n="censure.block">🚫 Bloquer</button>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <label data-i18n="organization.editorial_meta">Organisation</label>
+                            <div class="meta-grid">
+                                <select id="post-campaign-select" class="app-select"></select>
+                                <input id="post-internal-tags" type="text" placeholder="Tags internes..." data-i18n-placeholder="organization.internal_tags_placeholder">
+                            </div>
+                            <div id="internal-tag-suggestions" class="chips-container compact-chips"></div>
+                            <div id="campaign-details" class="meta-hint hidden"></div>
+                        </div>
+
+                        <div class="ai-box">
+                            <div class="ai-box-header">
+                                <strong data-i18n="ai.writer_title">Assistant IA</strong>
+                                <span id="ai-status" class="ai-status"></span>
+                            </div>
+                            <textarea id="ai-instruction" rows="2" placeholder="Ex: rends ce texte plus clair, plus marketing, plus naturel..." data-i18n-placeholder="ai.instruction_placeholder"></textarea>
+                            <div class="ai-prompt-row">
+                                <select id="ai-prompt-select" class="app-select"></select>
+                                <button id="btn-ai-use-prompt" class="btn-secondary small" data-i18n="ai.use_prompt">Appliquer la consigne</button>
+                            </div>
+                            <div class="tools-row">
+                                <button id="btn-ai-generate" class="btn-secondary" data-i18n="ai.generate">Générer une proposition</button>
+                                <button id="btn-ai-variants" class="btn-secondary" data-i18n="ai.variants">3 variantes</button>
+                                <button id="btn-ai-hashtags" class="btn-secondary" data-i18n="ai.hashtags">Hashtags IA</button>
+                                <button id="btn-ai-apply" class="btn-primary hidden" data-i18n="ai.apply">Appliquer la proposition</button>
+                            </div>
+                            <div id="ai-preview" class="ai-preview hidden">
+                                <div>
+                                    <label data-i18n="ai.before">Avant</label>
+                                    <pre id="ai-before"></pre>
+                                </div>
+                                <div>
+                                    <label data-i18n="ai.after">Après</label>
+                                    <pre id="ai-after"></pre>
+                                </div>
+                            </div>
+                            <div id="ai-options" class="ai-options hidden"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label data-i18n="post.hashtags_templates">Hashtags & Templates</label>
+                            <select id="template-select" class="app-select"></select>
+                            <div class="tools-row template-actions">
+                                <button id="btn-template-replace" class="btn-secondary small" data-i18n="organization.template_replace">Remplacer</button>
+                                <button id="btn-template-append" class="btn-secondary small" data-i18n="organization.template_append">Ajouter</button>
+                            </div>
+                            <div id="hashtags-collections" class="chips-container"></div>
+                            <div id="blacklist-status" class="status-ok">✔ Aucun mot banni</div>
+                        </div>
+
+                        <div class="input-group"><label data-i18n="post.mentions">Identifications (@)</label><textarea id="inp-tags" rows="1"></textarea></div>
+                        <div class="input-group"><label data-i18n="post.first_comment">Premier Commentaire</label><textarea id="inp-comment" rows="2"></textarea></div>
+                    </div>
+
+                    <div id="tab-media" class="tab-content">
+                        <h3 data-i18n="media.tools">Outils</h3>
+                        <div class="tools-row">
+                            <button id="btn-crop-start" class="btn-secondary" data-i18n="media.crop">✂️ Recadrer</button>
+                            <button id="btn-crop-apply" class="btn-primary hidden" data-i18n="common.validate">Valider</button>
+                            <button id="btn-convert-draft" class="btn-secondary hidden" data-i18n="media.convert_draft">Transformer en post</button>
+                        </div>
+                        <div id="post-media-drop-zone" class="mini-drop-zone media-drop" data-i18n="media.add_drop">Glisser des médias ici pour les ajouter au post</div>
+                        <div class="tools-row">
+                            <button id="btn-add-media" class="btn-secondary" data-i18n="media.add_media">Ajouter médias</button>
+                            <button id="btn-video-frame" class="btn-secondary" data-i18n="media.video_frame">Utiliser la frame vidéo</button>
+                            <button id="btn-video-cover" class="btn-secondary" data-i18n="media.video_cover">Importer miniature</button>
+                        </div>
+                        <input id="post-media-input" type="file" multiple hidden>
+                        <input id="video-cover-input" type="file" accept="image/*" hidden>
+                    </div>
+
+                    <div id="tab-mobile" class="tab-content">
+                        <div class="mobile-preview-shell">
+                            <div class="mobile-preview-phone">
+                                <div class="mobile-preview-top">
+                                    <img id="mobile-preview-avatar" class="mobile-preview-avatar hidden" src="">
+                                    <div id="mobile-preview-avatar-ph" class="mobile-preview-avatar placeholder"></div>
+                                    <strong id="mobile-preview-user">username</strong>
+                                </div>
+                                <div id="mobile-preview-media" class="mobile-preview-media"></div>
+                                <div class="mobile-preview-actions">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                    <span class="material-symbols-outlined">mode_comment</span>
+                                    <span class="material-symbols-outlined">send</span>
+                                    <span class="material-symbols-outlined">bookmark</span>
+                                </div>
+                                <div id="mobile-preview-caption" class="mobile-preview-caption"></div>
+                                <div id="mobile-preview-comment" class="mobile-preview-comment"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-export" class="tab-content">
+                        <h3 data-i18n="export.mobile">Mobile</h3>
+                        <div id="qrcode-box"></div>
+                        <div id="qr-export-tools" class="qr-export-tools"></div>
+                        <hr>
+                        <button id="btn-open-folder" class="btn-secondary full-width" data-i18n="export.open_folder">📂 Ouvrir le dossier du post</button>
+                        <div class="input-group" style="margin-top:15px">
+                            <label data-i18n="export.publish_date">Date Prévue</label>
+                            <input type="date" id="inp-date">
+                        </div>
+                        <div class="input-group">
+                            <label data-i18n="export.publish_time">Heure prévue</label>
+                            <input type="time" id="inp-time">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="close-modal">&times;</span>
+        </div>
+    </div>
+
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="logo">InstaLocalPlanner</div>
+            <ul class="nav-links">
+                <li id="nav-create"><span class="material-symbols-outlined">add_box</span> <span data-i18n="nav.create_post">Créer Post</span></li>
+                <li id="nav-create-ghost"><span class="material-symbols-outlined">post_add</span> <span data-i18n="nav.note">Note / Idée</span></li>
+                <li id="nav-ai-ideas"><span class="material-symbols-outlined">tips_and_updates</span> <span data-i18n="nav.ai_ideas">Idées IA</span></li>
+                <li id="nav-spacer"><span class="material-symbols-outlined">check_box_outline_blank</span> <span data-i18n="nav.spacer">Spacer</span></li>
+                
+                <li onclick="openSettings()"><span class="material-symbols-outlined">settings</span> <span data-i18n="nav.settings">Réglages</span></li>
+                <li onclick="location.href='/api/export_zip'"><span class="material-symbols-outlined">save</span> <span data-i18n="nav.backup">Backup Zip</span></li>
+                <li id="nav-import-backup"><span class="material-symbols-outlined">upload_file</span> <span data-i18n="nav.import_backup">Restaurer backup</span></li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <div class="content-wrapper">
+                
+                <header class="profile-header">
+                    <div class="profile-avatar" id="profile-avatar-drop" title="Glisser une photo de profil ici">
+                        <img id="ui-avatar" src="" class="hidden">
+                        <div id="ui-avatar-ph" class="avatar-placeholder"></div>
+                        <span class="avatar-edit-indicator material-symbols-outlined">photo_camera</span>
+                    </div>
+                    <div class="profile-details">
+                        <div class="details-top">
+                            <h2 id="ui-username">username</h2>
+                            <select id="quick-account-select" class="app-select compact-select"></select>
+                            <button class="btn-secondary small" onclick="openSettings()" data-i18n="common.edit">Modifier</button>
+                        </div>
+                        <div class="details-stats">
+                            <span><strong id="ui-posts">0</strong> posts</span>
+                            <span><strong id="ui-followers">0</strong> followers</span>
+                            <span><strong id="ui-following">0</strong> suivi(e)s</span>
+                        </div>
+                        <div class="details-bio">
+                            <h3 id="ui-fullname">Nom</h3>
+                            <p id="ui-bio">Bio...</p>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="toolbar-advanced">
+                    <div class="ratio-controls">
+                        <button class="btn-ratio active" data-ratio="standard">3:4</button>
+                        <button class="btn-ratio" data-ratio="portrait">4:5</button>
+                        <button class="btn-ratio" data-ratio="square">1:1</button>
+                    </div>
+                    <div class="view-actions">
+                        <input id="global-search" class="global-search" placeholder="Rechercher..." data-i18n-placeholder="organization.search_placeholder">
+                        <select id="filter-campaign" class="toolbar-select"></select>
+                        <select id="filter-tag" class="toolbar-select"></select>
+                        <button id="btn-clear-filters" class="btn-ratio" data-i18n="organization.clear_filters">Filtres</button>
+                        <button id="btn-ai-redundancy" class="btn-ratio" data-i18n="ai.redundancy">Anti-redondance</button>
+                        <button id="btn-grid-analysis" class="btn-ratio" data-i18n="analysis.title">Analyse grille</button>
+                        <button id="btn-local-reminders" class="btn-ratio" data-i18n="notifications.title">Rappels</button>
+                        <button id="btn-planning-view" class="btn-ratio active" data-i18n="planning.toggle">Planning</button>
+                        <button id="btn-notes-mode" class="btn-ratio active" data-i18n="nav.notes">Encarts</button>
+                        <button id="btn-ghost-mode" class="btn-ratio" data-i18n="nav.preview">👁️ Aperçu</button>
+                    </div>
+                </div>
+
+                <section id="planning-panel" class="planning-panel">
+                    <div id="planning-resize-handle" class="planning-resize-handle"></div>
+                    <div class="planning-header">
+                        <h3 data-i18n="planning.title">Planning</h3>
+                        <div class="tools-row">
+                            <button id="btn-planning-collapse" class="btn-icon small" title="Replier" data-i18n-title="planning.collapse" onclick="const p=document.getElementById('planning-panel');p.classList.toggle('collapsed');document.body.classList.toggle('planning-open',!p.classList.contains('collapsed')&&!p.classList.contains('fullscreen'));this.textContent=p.classList.contains('collapsed')?'chevron_left':'chevron_right';">chevron_right</button>
+                            <button id="btn-planning-fullscreen" class="btn-icon small" title="Grand planning" data-i18n-title="planning.fullscreen" onclick="const p=document.getElementById('planning-panel');p.classList.toggle('fullscreen');document.body.classList.toggle('planning-fullscreen-open',p.classList.contains('fullscreen'));document.body.classList.toggle('planning-open',!p.classList.contains('collapsed')&&!p.classList.contains('fullscreen'));this.textContent=p.classList.contains('fullscreen')?'close_fullscreen':'open_in_full';">open_in_full</button>
+                            <button id="btn-export-planning-json" class="btn-secondary small" data-i18n="planning.export_json">Export JSON</button>
+                            <button id="btn-import-planning-json" class="btn-secondary small" data-i18n="planning.import_json">Import JSON</button>
+                            <button class="btn-secondary small planning-tab active" data-view="month" data-i18n="planning.month">Mois</button>
+                            <button class="btn-secondary small planning-tab" data-view="week" data-i18n="planning.week">Semaine</button>
+                            <button class="btn-secondary small planning-tab" data-view="queue" data-i18n="planning.queue">File</button>
+                            <button class="btn-secondary small planning-tab" data-view="goals" data-i18n="planning.goals">Objectifs</button>
+                        </div>
+                    </div>
+                        <div id="planning-content" class="planning-content"></div>
+                        <div id="profile-photo-plans-panel" class="profile-photo-plans-panel"></div>
+                        <input id="planning-json-input" type="file" accept="application/json,.json" hidden>
+                </section>
+
+                <section id="grid-analysis-panel" class="planning-panel grid-analysis-panel hidden">
+                    <div class="planning-header">
+                        <h3 data-i18n="analysis.title">Analyse grille</h3>
+                        <button id="btn-close-grid-analysis" class="btn-secondary small" data-i18n="common.close">Fermer</button>
+                    </div>
+                    <div id="grid-analysis-content" class="analysis-content"></div>
+                </section>
+
+                <div id="grid-container" class="grid-layout ratio-standard"></div>
+                
+                <div id="drop-zone" class="drop-hint" data-i18n="upload.drop_hint">Glisser vos médias ici</div>
+            </div>
+        </main>
+    </div>
+
+    <div id="drop-overlay" class="drop-overlay hidden"><div data-i18n="upload.drop_create">Déposer pour Créer</div></div>
+    <input id="file-input" type="file" multiple hidden>
+    <input id="avatar-input" type="file" hidden>
+    <input id="backup-input" type="file" accept=".zip,application/zip" hidden>
+
+    <div id="ai-ideas-modal" class="modal-overlay hidden">
+        <div class="modal-container simple-modal">
+            <button class="close-btn" onclick="closeIdeasModal()">×</button>
+            <div class="simple-content">
+                <h2 data-i18n="ai.ideas_title">Idées de posts IA</h2>
+                <div class="tools-row">
+                    <button id="btn-generate-ideas" class="btn-primary" data-i18n="ai.generate_ideas">Générer des idées</button>
+                </div>
+                <div id="ai-ideas-list" class="ai-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js?v={{ v }}"></script>
+    <div id="qr-overlay" class="modal-overlay hidden" onclick="closeQrModal()">
+        <div class="qr-fullscreen-box" onclick="event.stopPropagation()">
+            <h3 data-i18n="qr.scan_me">Scannez-moi</h3>
+            <div id="qrcode-full"></div> <p class="hint" data-i18n="qr.close_hint">Touchez l'extérieur pour fermer</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,2314 @@
+/* =========================================
+   1. VARIABLES & RESET
+   ========================================= */
+:root { 
+    --bg: #121212; 
+    --panel: #1e1e1e; 
+    --text: #eee; 
+    --text-muted: #aaa;
+    --accent: #0095f6; 
+    --danger: #ed4956; 
+    --success: #10b981;
+    --warning: #fbbf24;
+    --border: #333; 
+    --input-bg: #2a2a2a;
+}
+
+* { box-sizing: border-box; }
+
+body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    margin: 0; 
+    height: 100vh; 
+    overflow: hidden; /* Important pour le layout App */
+}
+
+/* =========================================
+   2. LAYOUT PRINCIPAL (APP SHELL)
+   ========================================= */
+.app-layout { 
+    display: flex; 
+    height: 100%; 
+}
+
+/* Sidebar */
+.sidebar { 
+    width: 240px; 
+    background: var(--panel); 
+    border-right: 1px solid var(--border); 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+.logo { 
+    font-size: 22px; 
+    font-weight: 700; 
+    margin-bottom: 30px; 
+    display: block; 
+    letter-spacing: 1px;
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-links { list-style: none; padding: 0; margin: 0; }
+.nav-links li { 
+    padding: 12px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    border-radius: 8px; 
+    margin-bottom: 5px; 
+    color: var(--text-muted);
+    transition: 0.2s;
+}
+.nav-links li:hover { background: #333; }
+
+/* Zone Principale (Mise à jour V11) */
+.main-content { 
+    flex: 1; 
+    overflow-y: auto; 
+    /* On centre le contenu et on retire le padding global */
+    display: flex; 
+    justify-content: center; 
+}
+
+/* NOUVEAU CONTENEUR : Limite la largeur comme Instagram */
+.content-wrapper { 
+    width: 100%; 
+    max-width: 935px; /* Largeur max officielle */
+    padding: 30px 20px; 
+    transition: margin-right 0.22s ease, max-width 0.22s ease;
+}
+body.planning-open .content-wrapper {
+    margin-right: min(var(--planning-panel-width, 560px), calc(100vw - 360px));
+    max-width: 820px;
+}
+body.planning-fullscreen-open .content-wrapper {
+    margin-right: 0;
+    max-width: none;
+}
+
+/* =========================================
+
+/* =========================================
+   3. HEADER & PROFIL
+   ========================================= */
+.profile-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 48px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-details h2 { margin: 0; font-size: 20px; }
+.details-stats { color: var(--text-muted); font-size: 14px; margin-top: 5px; }
+
+/* Boutons Ratio (View Switch) */
+.view-switch { display: flex; gap: 8px; }
+.btn-ratio { 
+    background: transparent; 
+    border: 1px solid var(--border); 
+    color: var(--text-muted); 
+    padding: 6px 12px; 
+    border-radius: 20px; 
+    cursor: pointer; 
+    font-size: 12px;
+    transition: 0.2s;
+}
+.btn-ratio:hover { border-color: var(--text); color: var(--text); }
+.btn-ratio.active { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: bold; }
+
+/* =========================================
+   4. GRILLE & POSTS
+   ========================================= */
+.grid-layout { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 2px; 
+    margin-top: 20px; 
+    align-items: start;
+}
+
+.grid-cell {
+    min-width: 0;
+}
+
+.grid-item { 
+    background: #1a1a1a; 
+    position: relative; 
+    cursor: pointer; 
+    overflow: hidden;
+    isolation: isolate;
+}
+
+/* Ratios stables pour posts media, notes et spacers */
+.grid-layout.ratio-standard .grid-item { aspect-ratio: 3 / 4; }
+.grid-layout.ratio-portrait .grid-item { aspect-ratio: 4 / 5; }
+.grid-layout.ratio-square .grid-item { aspect-ratio: 1 / 1; }
+
+.grid-item img, .grid-item video { 
+    position: absolute; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    object-fit: cover; 
+}
+
+/* Style Spacer */
+.grid-item.spacer { 
+    border: 1px dashed #444; 
+    background: #161616; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+.grid-item.spacer::after { 
+    content: 'check_box_outline_blank'; 
+    font-family: 'Material Symbols Outlined'; 
+    color: #333; 
+    font-size: 32px; 
+}
+
+/* Indicateurs Status */
+.status-dot { 
+    position: absolute; top: 8px; right: 8px; 
+    width: 10px; height: 10px; border-radius: 50%; 
+    z-index: 10; box-shadow: 0 0 4px rgba(0,0,0,0.5); 
+}
+.status-draft .status-dot { background: var(--danger); }
+.status-writing .status-dot { background: var(--warning); }
+.status-ready .status-dot { background: var(--success); }
+
+/* Indicateur Carrousel */
+.grid-item .carousel-icon {
+    position: absolute; top: 8px; left: 8px;
+    color: white; font-size: 16px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    pointer-events: none;
+}
+
+/* Mode Aperçu : on masque les indicateurs d'édition pour visualiser le rendu final */
+.grid-layout.preview-mode .status-dot,
+.grid-layout.preview-mode .carousel-icon { display: none; }
+.grid-layout.preview-mode .grid-item.spacer { border-color: transparent; background: var(--bg); }
+.grid-layout.preview-mode .grid-item.spacer::after { content: ''; }
+.grid-layout.preview-mode .grid-item.type-ghost { border-color: transparent; }
+
+/* =========================================
+   5. MODALE V10 (SPLIT SCREEN)
+   ========================================= */
+.modal { 
+    position: fixed; inset: 0; 
+    background: rgba(0,0,0,0.85); 
+    z-index: 1000; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    backdrop-filter: blur(5px);
+}
+.modal.hidden { display: none; }
+
+.modal-content { 
+    width: 95%; max-width: 1200px; height: 90vh; 
+    background: var(--panel); 
+    border-radius: 12px; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Header Modal */
+.modal-header { 
+    height: 60px; 
+    border-bottom: 1px solid var(--border); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 0 20px; 
+    background: #252525;
+}
+.header-left { display: flex; gap: 10px; align-items: center; }
+
+.status-select {
+    background: var(--input-bg);
+    color: white;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+/* Corps Modal */
+.modal-body { flex: 1; display: flex; overflow: hidden; }
+
+/* Colonne Gauche (Visuel) */
+.modal-left-col { 
+    width: 50%; 
+    border-right: 1px solid var(--border); 
+    display: flex; 
+    flex-direction: column; 
+    padding: 20px; 
+    background: #0d0d0d; 
+}
+
+/* Colonne Droite (Inputs) */
+.modal-right-col { 
+    width: 50%; 
+    padding: 20px; 
+    overflow-y: auto; 
+    background: var(--panel); 
+}
+
+/* =========================================
+   6. COMPOSANTS VISUELS (Preview, Thumbnails)
+   ========================================= */
+.preview-area { 
+    flex: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    overflow: hidden; 
+    margin-bottom: 20px; 
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+.preview-area img, .preview-area video { 
+    max-width: 100%; max-height: 100%; 
+    object-fit: contain; 
+}
+
+/* Gestionnaire Carrousel */
+.carousel-sorter label { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; display: block; }
+.carousel-sorter { 
+    background: #1a1a1a; 
+    padding: 10px; 
+    border-radius: 8px; 
+    border: 1px solid var(--border);
+}
+
+.thumb-list { 
+    display: flex; gap: 10px; 
+    overflow-x: auto; 
+    padding-bottom: 5px; 
+    min-height: 60px; 
+}
+.thumb-item { 
+    width: 60px; height: 60px; 
+    flex-shrink: 0; 
+    border: 2px solid transparent; 
+    cursor: grab; 
+    position: relative; 
+    border-radius: 4px;
+    overflow: hidden;
+}
+.thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+.thumb-item.selected { border-color: var(--accent); }
+.thumb-item:active { cursor: grabbing; }
+.thumb-video-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Material Symbols Outlined';
+    font-size: 24px;
+    color: white;
+    background: #111;
+}
+
+/* Encarts rédactionnels au-dessus des posts */
+.post-note-card {
+    position: relative;
+    min-height: 36px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: #202020;
+    color: white;
+    cursor: text;
+    margin-bottom: 2px;
+}
+.grid-cell.batch-selected .grid-item {
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 1px rgba(0,149,246,0.4), 0 10px 28px rgba(0,149,246,0.22);
+}
+.grid-cell.batch-selected .post-note-card {
+    border-color: var(--accent);
+    background: #182332;
+}
+.post-note-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 15px;
+    margin-bottom: 3px;
+}
+.post-id-badge,
+.post-note-meta {
+    display: inline-flex;
+    align-items: center;
+    max-width: 86px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #f2f2f2;
+    background: rgba(0, 0, 0, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
+    padding: 2px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+}
+.post-id-badge {
+    cursor: copy;
+}
+.post-note-meta {
+    color: #9ad0ff;
+    font-weight: 600;
+}
+.post-note-card:hover .post-id-badge {
+    color: #fff;
+    border-color: var(--accent);
+}
+.post-note-card.empty {
+    opacity: 0.42;
+}
+.post-note-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(0,149,246,0.55), 0 6px 14px rgba(0,0,0,0.28);
+}
+.post-note-title {
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.post-note-comment {
+    margin-top: 2px;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #d8d8d8;
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.post-note-comment.clamped {
+    max-height: 2.4em;
+}
+.post-note-card.expanded .post-note-comment {
+    display: block;
+    max-height: none;
+    -webkit-line-clamp: unset;
+}
+.post-note-placeholder {
+    font-size: 11px;
+    color: #aaa;
+}
+.post-note-editor {
+    display: grid;
+    gap: 4px;
+}
+.post-note-editor input {
+    width: 100%;
+    height: 24px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background: #111;
+    color: white;
+    font-size: 12px;
+}
+.post-note-toggle {
+    margin-top: 4px;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+}
+.grid-layout.notes-hidden .post-note-card,
+.grid-layout.preview-mode .post-note-card {
+    display: none;
+}
+
+/* =========================================
+   7. ONGLETS & FORMULAIRES
+   ========================================= */
+.modal-tabs { display: flex; gap: 20px; }
+.tab-btn { 
+    background: none; border: none; 
+    color: var(--text-muted); 
+    cursor: pointer; 
+    font-weight: 600; 
+    font-size: 13px;
+    padding-bottom: 5px; 
+    transition: 0.2s;
+}
+.tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+.tab-content { display: none; padding-top: 10px; }
+.tab-content.active { display: block; animation: fadein 0.2s; }
+
+.input-group { margin-bottom: 20px; }
+.input-group label { 
+    display: flex; justify-content: space-between;
+    margin-bottom: 6px; 
+    color: var(--text-muted); 
+    font-size: 12px; 
+    font-weight: bold; 
+    text-transform: uppercase;
+}
+
+textarea, input[type="text"], input[type="date"] { 
+    width: 100%; 
+    background: var(--input-bg); 
+    border: 1px solid var(--border); 
+    color: white; 
+    padding: 12px; 
+    border-radius: 6px; 
+    font-family: inherit; 
+    font-size: 14px;
+}
+textarea:focus, input:focus { outline: none; border-color: var(--accent); }
+.app-select {
+    width: 100%;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+}
+.app-select:focus { outline: none; border-color: var(--accent); }
+.account-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+}
+.account-row .btn-secondary {
+    min-height: 40px;
+    white-space: nowrap;
+}
+.compact-select {
+    width: auto;
+    min-width: 150px;
+    padding: 6px 28px 6px 10px;
+    font-size: 12px;
+}
+.mini-drop-zone {
+    border: 1px dashed #555;
+    color: var(--text-muted);
+    background: #202020;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 8px;
+    text-align: center;
+    font-size: 12px;
+    transition: 0.2s;
+}
+.mini-drop-zone.drag-over {
+    border-color: var(--accent);
+    color: white;
+    background: rgba(0, 149, 246, 0.12);
+}
+.media-drop {
+    margin: 14px 0;
+    min-height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tools-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.smart-area { height: 140px; resize: vertical; line-height: 1.5; }
+
+/* =========================================
+   8. OUTILS SPECIFIQUES (SEO, Censure)
+   ========================================= */
+/* SEO Bar */
+.seo-bar { margin-bottom: 20px; font-size: 12px; background: #252525; padding: 10px; border-radius: 6px; }
+.progress-bg { height: 6px; background: #333; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+
+/* Critères SEO : état validé */
+.seo-criteria li { color: var(--text-muted); transition: color 0.2s; }
+.seo-criteria li.valid { color: var(--success); }
+.seo-criteria li.valid::before { content: '✔ '; }
+
+/* Censure Box */
+.censure-box { 
+    background: #2a1a1a; 
+    border: 1px solid #5c2b2b; 
+    padding: 10px; margin-top: 8px; 
+    border-radius: 4px; font-size: 13px; color: #ffadad; 
+}
+.ai-box {
+    border: 1px solid var(--border);
+    background: #191919;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 20px;
+}
+.ai-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.ai-status {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.ai-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+}
+.ai-preview label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+.ai-preview pre {
+    min-height: 120px;
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre-wrap;
+    background: #101010;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 0;
+    color: #eee;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+}
+.ai-options,
+.ai-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+.ai-option,
+.ai-list-item {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 10px;
+    color: #ddd;
+    font-size: 13px;
+    line-height: 1.45;
+}
+.ai-option .tools-row,
+.ai-list-item .tools-row { margin-top: 8px; }
+.ai-prompt-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-top: 8px;
+}
+.quick-post-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+    margin-top: 6px;
+}
+.quick-post-controls input,
+.quick-post-controls select {
+    min-width: 0;
+    width: 100%;
+    height: 28px;
+    background: #141414;
+    border: 1px solid #303030;
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 3px 5px;
+}
+.grid-layout.preview-mode .quick-post-controls { display: none; }
+.post-note-meta {
+    cursor: pointer;
+    border: 1px solid #333;
+    border-radius: 999px;
+    padding: 1px 6px;
+}
+.post-note-meta.tag-meta {
+    color: #9ad0ff;
+    border-color: #29425a;
+}
+.post-note-meta:hover {
+    color: white;
+    background: #242424;
+}
+.redundancy-finding strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #9ad0ff;
+}
+.redundancy-finding .tools-row {
+    flex-wrap: wrap;
+}
+.suggestion-btn { 
+    background: var(--danger); 
+    color: white; border: none; 
+    padding: 3px 8px; border-radius: 4px; 
+    cursor: pointer; margin-left: 8px; font-size: 11px;
+}
+
+/* Collections Hashtags */
+.chips-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px; }
+.compact-chips { gap: 5px; margin-top: 7px; }
+.chip-btn {
+    background: #252525; border: 1px solid #333;
+    color: var(--text-muted); padding: 5px 10px;
+    border-radius: 15px; font-size: 12px; cursor: pointer;
+}
+.chip-btn:hover { background: #333; color: white; }
+.chip-btn.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+.chip-btn.known-tag { border-color: #2d5e56; color: #4ec9b0; }
+.chip-btn.new-tag { border-color: #5a4a1e; color: #f5d36b; }
+.ai-tag-group {
+    width: 100%;
+    margin-bottom: 8px;
+}
+.ai-tag-group strong {
+    display: block;
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-bottom: 3px;
+    text-transform: uppercase;
+}
+.template-actions { margin-top: 8px; }
+.meta-hint {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-left: 3px solid #333;
+    background: #141414;
+    color: var(--text-muted);
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+/* =========================================
+   9. BOUTONS & UTILS
+   ========================================= */
+.btn-primary { 
+    background: var(--accent); color: white; border: none; 
+    padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; 
+}
+.btn-primary:hover { background: #007ccf; }
+
+.btn-secondary { 
+    background: #333; color: white; border: 1px solid #444; 
+    padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
+}
+.btn-secondary:hover { background: #444; }
+
+.btn-icon { 
+    background: none; border: none; color: var(--text-muted); 
+    cursor: pointer; font-family: 'Material Symbols Outlined'; font-size: 22px; 
+    padding: 5px; border-radius: 4px;
+}
+.btn-icon:hover { background: #333; color: white; }
+.btn-icon.danger:hover { color: var(--danger); background: rgba(237, 73, 86, 0.1); }
+
+.full-width { width: 100%; }
+.small { font-size: 11px; padding: 4px 8px; }
+.hidden { display: none !important; }
+.global-search {
+    width: 190px;
+    background: #1d1d1d;
+    border: 1px solid #333;
+    color: var(--text-main);
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+.toolbar-select {
+    max-width: 150px;
+    background: #1d1d1d;
+    border: 1px solid #333;
+    color: var(--text-main);
+    padding: 7px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+.grid-cell.search-hidden { display: none; }
+.meta-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+    gap: 8px;
+}
+.meta-grid input,
+.meta-grid select {
+    min-width: 0;
+    background: #121212;
+    border: 1px solid #333;
+    color: var(--text-main);
+    border-radius: 6px;
+    padding: 8px;
+}
+.post-note-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-top: 6px;
+}
+.post-note-ai {
+    font-family: 'Material Symbols Outlined';
+    border: 1px solid #333;
+    background: #202020;
+    color: var(--text-muted);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 3px 5px;
+}
+.post-note-ai:hover {
+    color: white;
+    border-color: var(--accent);
+}
+
+/* Drop Overlay */
+.drop-overlay { 
+    position: fixed; inset: 0; 
+    background: rgba(0, 149, 246, 0.9); 
+    z-index: 2000; 
+    display: flex; align-items: center; justify-content: center; 
+    font-size: 24px; font-weight: bold; color: white;
+}
+.drop-hint { 
+    border: 2px dashed #444; padding: 40px; 
+    text-align: center; color: #666; margin-top: 40px; 
+    border-radius: 12px; font-weight: bold;
+}
+
+/* Toast Notifications */
+.toast { 
+    position: fixed; bottom: 30px; left: 50%; 
+    transform: translateX(-50%); 
+    background: #333; color: white; 
+    padding: 12px 24px; border-radius: 30px; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
+    z-index: 5000; font-weight: 500;
+    animation: popup 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid #444;
+}
+
+@keyframes popup { from { transform: translate(-50%, 50px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes fadein { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+.close-modal { 
+    position: absolute; top: 15px; right: 20px; 
+    font-size: 28px; cursor: pointer; color: var(--text-muted); 
+    transition: 0.2s;
+}
+.close-modal:hover { color: white; }
+
+/* --- MODALE REGLAGES (Style Moderne) --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(5px);
+}
+.modal-overlay.hidden { display: none; }
+
+.modal-container {
+    width: 900px; height: 600px; background: #1E1E1E;
+    border-radius: 12px; display: flex; overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    font-family: 'Segoe UI', sans-serif; color: #E0E0E0;
+    border: 1px solid #333;
+}
+
+/* Sidebar */
+.modal-sidebar {
+    width: 220px; background: #252526; padding: 20px;
+    border-right: 1px solid #333;
+}
+.sidebar-header { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: #FFF; }
+.sidebar-group { font-size: 11px; text-transform: uppercase; color: #888; margin-top: 20px; margin-bottom: 10px; font-weight: bold; }
+.nav-item {
+    padding: 10px 15px; cursor: pointer; border-radius: 6px;
+    margin-bottom: 5px; font-size: 14px; transition: 0.2s; color: #BBB;
+}
+.nav-item:hover { background: #333; color: #FFF; }
+.nav-item.active { background: #37373D; color: #FFF; font-weight: 500; border-left: 3px solid #007ACC; }
+
+/* Contenu */
+.settings-content { flex: 1; padding: 30px; position: relative; display: flex; flex-direction: column; }
+.close-btn {
+    position: absolute; top: 15px; right: 20px; font-size: 24px;
+    background: none; border: none; color: #888; cursor: pointer;
+}
+.tab-section { display: none; flex: 1; overflow-y: auto; }
+.tab-section.active { display: block; animation: fadeIn 0.3s; }
+
+/* Inputs et Formulaires */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+h2 { margin: 0; font-size: 22px; }
+.count { font-size: 14px; color: #666; font-weight: normal; }
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; color: #AAA; font-size: 13px; }
+.form-group input, .form-group textarea {
+    width: 100%; background: #2D2D30; border: 1px solid #3E3E42;
+    color: #FFF; padding: 10px; border-radius: 4px; outline: none;
+}
+.form-group textarea { min-height: 80px; resize: none; }
+
+/* Zone Intelligente (Tags) */
+.smart-input-area textarea {
+    width: 100%; height: 60px; background: #2D2D30; border: 1px solid #3E3E42;
+    color: #FFF; padding: 10px; border-radius: 6px; resize: none; outline: none;
+}
+.hint { font-size: 11px; color: #666; margin-top: 5px; margin-bottom: 15px; }
+
+.tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.tag-chip {
+    background: #203e3a; border: 1px solid #2d5e56; color: #4ec9b0;
+    padding: 5px 12px; border-radius: 20px; font-size: 13px;
+    display: flex; align-items: center; gap: 8px; user-select: none;
+}
+.censure-mode .tag-chip { background: #3e2020; border: 1px solid #5e2d2d; color: #ff6b6b; }
+.tag-remove { cursor: pointer; font-weight: bold; opacity: 0.7; }
+.tag-remove:hover { opacity: 1; }
+
+/* Boutons */
+.actions button { margin-left: 8px; padding: 5px 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: #ddd; cursor: pointer; font-size: 12px; }
+.actions button:hover { background: #444; }
+.btn-danger { color: #ff6b6b !important; border-color: #5e2d2d !important; }
+.modal-footer { margin-top: auto; padding-top: 20px; text-align: right; }
+.btn-save { background: #007ACC; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.btn-save:hover { background: #0062a3; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Style pour les Posts Fantômes (Texte seul) */
+.grid-item.type-ghost {
+    background: #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #444;
+}
+.grid-item.type-ghost h3 {
+    margin: 0;
+    font-size: 20px; /* Beaucoup plus gros */
+    font-weight: 800;
+    line-height: 1.3;
+    color: #fff;
+    text-align: center;
+    overflow: hidden;
+    /* On permet d'afficher plus de lignes */
+    display: -webkit-box;
+    -webkit-line-clamp: 5; 
+    -webkit-box-orient: vertical;
+    padding: 0 5px;
+}
+.grid-item.type-ghost span {
+    font-size: 10px;
+    color: #888;
+    margin-top: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.quick-ban-row { display: flex; gap: 5px; margin-top: 10px; align-items: center; }
+.small-input { padding: 5px 10px !important; font-size: 12px; height: 30px; }
+
+/* Layout Gestionnaire Hashtags */
+.hashtag-manager-layout {
+    display: flex; height: 400px; gap: 15px; border: 1px solid #333;
+    background: #1a1a1a; border-radius: 6px; overflow: hidden;
+}
+.folder-col {
+    width: 30%; background: #222; border-right: 1px solid #333;
+    display: flex; flex-direction: column;
+}
+.tags-col { width: 70%; padding: 15px; display: flex; flex-direction: column; }
+
+.col-header {
+    padding: 10px; background: #2a2a2a; border-bottom: 1px solid #333;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.col-header h3 { font-size: 14px; margin: 0; color: #ddd; }
+
+.folder-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; }
+.folder-item {
+    padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #2a2a2a;
+    font-size: 13px; display: flex; justify-content: space-between;
+}
+.folder-item:hover { background: #333; }
+.folder-item.active { background: #0095f6; color: white; }
+.folder-delete { opacity: 0; color: #ffadad; }
+.folder-item:hover .folder-delete { opacity: 1; }
+
+.search-bar input { padding: 4px 8px; font-size: 12px; background: #111; border: 1px solid #444; width: 120px;}
+.actions-footer { margin-top: auto; padding-top: 10px; border-top: 1px solid #333; }
+
+/* Correction QR Code : Fond blanc pour le contraste + centrage */
+#qrcode-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff; /* Fond blanc OBLIGATOIRE pour la lecture */
+    padding: 15px;
+    margin: 20px auto;
+    border-radius: 8px;
+    width: 300px; /* Taille fixe pour accueillir la haute densité */
+    height: 300px;
+}
+
+#qrcode-box img {
+    display: block; /* Évite les décalages */
+}
+/* Style pour le QR Code Géant */
+.qr-fullscreen-box {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 90vh; /* S'adapte à l'écran */
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+.qr-fullscreen-box h3 {
+    color: black;
+    margin: 0 0 20px 0;
+    font-size: 24px;
+}
+
+.qr-fullscreen-box .hint {
+    color: #666;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+/* On rend le petit QR Code cliquable pour indiquer qu'on peut zoomer */
+#qrcode-box {
+    cursor: zoom-in;
+    border: 2px solid transparent;
+    transition: transform 0.2s;
+}
+#qrcode-box:hover {
+    transform: scale(1.02);
+    border-color: var(--accent);
+}
+.qr-export-tools {
+    display: grid;
+    gap: 8px;
+    max-width: 420px;
+    margin: 0 auto 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.qr-status.error { color: #ffadad; }
+.qr-count { color: #888; }
+
+.mobile-preview-shell {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 20px;
+}
+.mobile-preview-phone {
+    width: min(360px, 100%);
+    background: #050505;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    color: #f7f7f7;
+}
+.mobile-preview-top {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 12px;
+}
+.mobile-preview-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #333;
+}
+.mobile-preview-avatar.placeholder::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #444, #111);
+}
+.mobile-preview-media {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background: #111;
+    display: grid;
+    place-items: center;
+}
+.mobile-preview-media img,
+.mobile-preview-media video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.mobile-preview-ghost {
+    padding: 24px;
+    text-align: center;
+    color: #ddd;
+    font-weight: 700;
+}
+.mobile-preview-actions {
+    display: grid;
+    grid-template-columns: 28px 28px 28px 1fr;
+    gap: 6px;
+    padding: 10px 12px 4px;
+}
+.mobile-preview-actions span:last-child { justify-self: end; }
+.mobile-preview-caption,
+.mobile-preview-comment {
+    white-space: pre-wrap;
+    padding: 6px 12px 12px;
+    font-size: 13px;
+    line-height: 1.35;
+}
+.mobile-preview-comment { color: #aaa; padding-top: 0; }
+
+/* =========================================
+   10. CORRECTIFS LAYOUT (classes orphelines)
+   Ces classes étaient utilisées dans le HTML/JS
+   sans aucune règle CSS associée.
+   ========================================= */
+
+/* Avatar du profil */
+.profile-avatar {
+    width: 156px;
+    height: 156px;
+    flex-shrink: 0;
+    position: relative;
+    cursor: pointer;
+}
+.profile-avatar img,
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.avatar-placeholder {
+    background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+    border: 1px solid var(--border);
+}
+.profile-avatar.drag-over,
+.profile-avatar:hover {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+.avatar-edit-indicator {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.75);
+    color: white;
+    font-size: 18px;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+
+/* Détails du profil (regroupements internes) */
+.profile-details {
+    flex: 1;
+    min-width: 0;
+    padding-top: 8px;
+}
+.details-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+.details-stats {
+    display: flex;
+    gap: 28px;
+    margin: 18px 0 16px;
+    color: var(--text-main);
+}
+.details-bio {
+    margin-top: 10px;
+    max-width: 520px;
+}
+.details-bio h3 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+}
+.details-bio p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Barre d'outils (ratios + aperçu) */
+.toolbar-advanced {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+.modal-container.simple-modal {
+    width: 720px;
+    height: 560px;
+}
+.simple-content {
+    width: 100%;
+    padding: 30px;
+    overflow: auto;
+}
+.ratio-controls {
+    display: flex;
+    gap: 8px;
+}
+.view-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.planning-panel {
+    margin-top: 18px;
+    border: 1px solid var(--border);
+    background: #181818;
+    border-radius: 8px;
+    padding: 14px;
+}
+#planning-panel {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    bottom: 18px;
+    width: var(--planning-panel-width, min(560px, calc(100vw - 36px)));
+    min-width: 360px;
+    max-width: calc(100vw - 36px);
+    z-index: 900;
+    overflow: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    transition: width 0.22s ease, transform 0.22s ease, opacity 0.18s ease;
+}
+#planning-panel.resizing {
+    user-select: none;
+}
+#planning-panel.collapsed {
+    width: 48px !important;
+    min-width: 48px;
+    padding: 8px 6px;
+    overflow: hidden;
+}
+#planning-panel.collapsed .planning-resize-handle,
+#planning-panel.collapsed .planning-content,
+#planning-panel.collapsed .profile-photo-plans-panel,
+#planning-panel.collapsed #planning-json-input,
+#planning-panel.collapsed .planning-header h3,
+#planning-panel.collapsed .planning-header .tools-row button:not(#btn-planning-collapse) {
+    display: none;
+}
+#planning-panel.collapsed .planning-header {
+    justify-content: center;
+    margin: 0;
+}
+#planning-panel.fullscreen {
+    left: 18px;
+    width: auto !important;
+    max-width: none;
+    z-index: 1200;
+    pointer-events: auto;
+}
+#planning-panel.fullscreen .calendar-day,
+#planning-panel.fullscreen .week-day {
+    min-height: 132px;
+}
+.planning-resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -7px;
+    width: 14px;
+    cursor: ew-resize;
+    z-index: 3;
+}
+.planning-resize-handle::after {
+    content: "";
+    position: absolute;
+    top: 48%;
+    left: 5px;
+    width: 3px;
+    height: 42px;
+    border-radius: 99px;
+    background: #555;
+    opacity: 0.55;
+}
+.planning-resize-handle:hover::after {
+    background: var(--accent);
+    opacity: 1;
+}
+.planning-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.planning-header h3 { margin: 0; }
+.planning-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+    position: relative;
+}
+.calendar-month-nav {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto 34px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.calendar-month-nav strong {
+    text-transform: capitalize;
+}
+.calendar-month-nav button:first-child,
+.calendar-month-nav button:last-child {
+    font-family: 'Material Symbols Outlined';
+    font-size: 18px;
+    padding: 5px;
+}
+.calendar-head {
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    padding: 4px;
+}
+.calendar-day,
+.week-day {
+    min-height: 92px;
+    background: #111;
+    border: 1px solid #2c2c2c;
+    border-radius: 6px;
+    padding: 6px;
+    position: relative;
+}
+.calendar-day.has-marker-bars {
+    padding-top: calc(22px + (var(--calendar-marker-lanes, 1) * 10px));
+}
+.calendar-day.calendar-drop-target,
+.week-day.calendar-drop-target {
+    border-color: var(--accent);
+    background: #142436;
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+.calendar-day.active-day-filter,
+.week-day.active-day-filter {
+    border-color: var(--success);
+    background: #13261e;
+}
+.calendar-day.muted { opacity: 0.25; }
+.calendar-day strong,
+.week-day strong {
+    display: block;
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+.planning-post {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 4px;
+    padding: 4px 5px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    background: #222;
+    color: white;
+    font-size: 11px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.planning-post-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.planning-post-time {
+    flex: 0 0 auto;
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+}
+.planning-post-list {
+    display: grid;
+    gap: 4px;
+}
+.planning-post-list .planning-post {
+    margin-top: 0;
+}
+.planning-post-list .planning-post:hover {
+    border-color: var(--accent);
+}
+.planning-post.profile-photo-plan {
+    border-color: #f472b6;
+    background: #2a1424;
+}
+.planning-post.profile-photo-plan.normal {
+    border-color: #38bdf8;
+    background: #0f2433;
+}
+.planning-post.profile-photo-plan.ephemeral {
+    border-color: #f472b6;
+    background: #2a1424;
+}
+.profile-photo-plans-panel {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #303030;
+}
+/* Quand le panneau est repositionné dans le contenu (sous le calendrier),
+   on supprime la grosse séparation top pour qu'il flotte plus naturellement
+   entre le calendrier et la légende des évènements. */
+.profile-photo-plans-slot .profile-photo-plans-panel {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #2a2a2a;
+}
+.profile-photo-plans-panel.hidden {
+    display: none;
+}
+.profile-photo-plans-panel h4 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--text-main);
+}
+.profile-photo-plan-list {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.profile-photo-plan-form {
+    display: grid;
+    grid-template-columns: minmax(110px, 0.8fr) minmax(132px, 1.2fr) 118px 116px minmax(110px, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.profile-photo-plan-form input,
+.profile-photo-plan-form select,
+.profile-photo-plan-card input,
+.profile-photo-plan-card select,
+.profile-photo-plan-card textarea {
+    width: 100%;
+    min-width: 0;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 5px;
+    font-size: 11px;
+}
+.profile-photo-plan-card textarea {
+    resize: vertical;
+    min-height: 42px;
+}
+.profile-photo-plan-board {
+    display: grid;
+    gap: 10px;
+}
+.profile-photo-plan-group {
+    display: grid;
+    gap: 6px;
+}
+.profile-photo-plan-group h5 {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0;
+}
+.profile-photo-plan-card {
+    flex: 0 0 104px;
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    background: #111;
+    border: 1px solid #303030;
+    border-radius: 6px;
+    padding: 9px;
+}
+.profile-photo-plan-card.normal {
+    border-color: #245f73;
+}
+.profile-photo-plan-card.ephemeral {
+    border-color: #8b1d5b;
+}
+.profile-photo-plan-card img {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #f472b6;
+    background: #222;
+}
+.profile-photo-plan-card strong,
+.profile-photo-plan-card small {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.profile-photo-plan-card strong {
+    font-size: 11px;
+}
+.profile-photo-plan-card small {
+    color: var(--text-muted);
+    font-size: 10px;
+}
+.profile-photo-plan-actions {
+    display: flex;
+    gap: 5px;
+}
+.profile-photo-plan-actions button {
+    min-width: 28px;
+}
+
+/* ===== Panneau Photos profil planifiées — refonte timeline =====
+   Coexiste avec .profile-photo-plan-* (gardés pour Réglages > Galerie profils).
+   Classes utilisées par renderProfilePhotoPlansPanel uniquement. */
+.profile-photo-plans-panel .pfp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+}
+.profile-photo-plans-panel .pfp-toolbar .pfp-help {
+    color: var(--text-muted);
+    font-size: 10px;
+    line-height: 1.3;
+    flex: 1 1 160px;
+    min-width: 0;
+}
+.profile-photo-plans-panel .pfp-unsched-section,
+.profile-photo-plans-panel .pfp-timeline-section {
+    margin: 0 0 12px;
+}
+.profile-photo-plans-panel h5 {
+    margin: 0 0 6px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+.profile-photo-plans-panel .pfp-timeline,
+.profile-photo-plans-panel .pfp-unsched-row {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 6px 2px 8px;
+    align-items: stretch;
+    scrollbar-width: thin;
+}
+.profile-photo-plans-panel .pfp-unsched-row.pfp-drop-hover {
+    outline: 2px dashed var(--accent);
+    outline-offset: -4px;
+    border-radius: 6px;
+    background: rgba(80, 120, 200, 0.05);
+}
+.profile-photo-plans-panel .pfp-empty {
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 14px 12px;
+    text-align: center;
+    flex: 1;
+    border: 1px dashed #2c2c2c;
+    border-radius: 6px;
+}
+.profile-photo-plans-panel .pfp-past {
+    margin-top: 6px;
+}
+.profile-photo-plans-panel .pfp-past > summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    list-style: none;
+    padding: 4px 0;
+}
+.profile-photo-plans-panel .pfp-past > summary::-webkit-details-marker {
+    display: none;
+}
+.profile-photo-plans-panel .pfp-timeline-past .pfp-card {
+    opacity: 0.55;
+}
+
+/* Carte photo profil (timeline ou rangée non-programmées) */
+.pfp-card {
+    flex: 0 0 112px;
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 5px;
+    background: #111;
+    border: 1px solid #303030;
+    border-radius: 6px;
+    padding: 8px 7px;
+    cursor: grab;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    position: relative;
+}
+.pfp-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+.pfp-card.is-dragging {
+    opacity: 0.4;
+    cursor: grabbing;
+}
+.pfp-card img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #222;
+    border: 2px solid #555;
+    pointer-events: none;
+}
+.pfp-card.pfp-normal img {
+    border-color: #38bdf8; /* bleu = normal futur */
+}
+.pfp-card.pfp-ephemeral img {
+    border-color: #f472b6; /* rose = éphémère */
+}
+.pfp-card.pfp-unscheduled img {
+    border-style: dashed;
+    border-color: #777; /* gris pointillé = en attente */
+}
+.pfp-card-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    min-width: 0;
+}
+.pfp-card .pfp-date {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-main);
+    white-space: nowrap;
+}
+.pfp-card .pfp-badge {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #245f73;
+    color: #cfe9f4;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.pfp-card .pfp-note {
+    width: 100%;
+    min-width: 0;
+    background: #181818;
+    border: 1px solid #2a2a2a;
+    border-radius: 4px;
+    color: var(--text-main);
+    font-size: 10px;
+    padding: 3px 5px;
+}
+.pfp-card .pfp-kind-toggle {
+    background: transparent;
+    border: 1px solid #303030;
+    color: var(--text-muted);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 6px;
+    border-radius: 999px;
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+}
+.pfp-card.pfp-normal .pfp-kind-toggle {
+    color: #7dd3fc;
+    border-color: #245f73;
+}
+.pfp-card.pfp-ephemeral .pfp-kind-toggle {
+    color: #f9a8d4;
+    border-color: #8b1d5b;
+}
+.pfp-card .pfp-kind-toggle:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+}
+.pfp-card .pfp-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+.pfp-card .pfp-actions .btn-icon {
+    min-width: 24px;
+}
+.calendar-marker-stack {
+    display: grid;
+    gap: 2px;
+    margin: 3px 0 4px;
+}
+.calendar-marker,
+.calendar-marker-line {
+    display: block;
+    height: 7px;
+    border-radius: 999px;
+    min-width: 0;
+}
+.calendar-marker-line {
+    width: calc(100% + 12px);
+    margin-left: -6px;
+    margin-right: -6px;
+    color: rgba(255,255,255,0.92);
+    font-size: 8px;
+    line-height: 7px;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+    padding-left: 5px;
+    position: relative;
+}
+.calendar-marker-line.marker-start {
+    margin-left: 0;
+    border-top-left-radius: 999px;
+    border-bottom-left-radius: 999px;
+}
+.calendar-marker-line.marker-end {
+    margin-right: 0;
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
+}
+.calendar-marker-handle {
+    position: absolute;
+    top: -4px;
+    width: 9px;
+    height: 15px;
+    border: 1px solid rgba(255,255,255,0.85);
+    border-radius: 999px;
+    background: rgba(0,0,0,0.55);
+    cursor: ew-resize;
+}
+.calendar-marker-handle.start { left: -1px; }
+.calendar-marker-handle.end { right: -1px; }
+.calendar-marker-bar {
+    position: absolute;
+    top: calc(24px + (var(--marker-lane, 0) * 10px));
+    left: -2px;
+    z-index: 8;
+    height: 8px;
+    border-radius: 0;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.28), 0 4px 8px rgba(0,0,0,0.2);
+    color: rgba(255,255,255,0.96);
+    font-size: 9px;
+    line-height: 8px;
+    overflow: visible;
+    pointer-events: none;
+}
+.calendar-marker-bar.marker-start {
+    border-top-left-radius: 999px;
+    border-bottom-left-radius: 999px;
+    left: 6px;
+}
+.calendar-marker-bar.marker-end {
+    border-top-right-radius: 999px;
+    border-bottom-right-radius: 999px;
+}
+.calendar-marker-bar-label {
+    display: block;
+    max-width: min(180px, 100%);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-left: 8px;
+    pointer-events: none;
+}
+.calendar-marker-bar .calendar-marker-handle {
+    pointer-events: auto;
+}
+.calendar-day.has-marker-origin {
+    z-index: 4;
+}
+.calendar-marker-legend {
+    display: grid;
+    gap: 5px;
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #303030;
+}
+.calendar-marker-legend-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.calendar-marker-legend-item {
+    display: grid;
+    gap: 4px;
+    align-items: stretch;
+    font-size: 11px;
+    background: #101010;
+    border: 1px solid #282828;
+    border-radius: 4px;
+    padding: 4px 6px;
+}
+.calendar-marker-legend-item.date-picking {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+/* Ligne principale compacte : couleur, nom, icône commentaire (optionnelle), plage courte, suppression. */
+.calendar-marker-legend-head {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr) 22px auto 26px;
+    gap: 6px;
+    align-items: center;
+}
+.calendar-marker-legend-note-icon {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.calendar-marker-legend-note-icon .material-symbols-outlined {
+    font-size: 16px;
+    line-height: 1;
+}
+.calendar-marker-legend-note-icon.has-note {
+    color: var(--accent, #4ec9b0);
+    border-color: rgba(78, 201, 176, 0.35);
+    background: rgba(78, 201, 176, 0.08);
+}
+.calendar-marker-legend-note-icon.has-note:hover {
+    border-color: var(--accent, #4ec9b0);
+}
+.calendar-marker-legend-note-icon.is-empty {
+    visibility: hidden;
+    pointer-events: none;
+}
+.calendar-marker-legend-name {
+    width: 100%;
+    min-width: 0;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 4px 5px;
+    font-size: 11px;
+}
+.calendar-marker-legend-dates-summary {
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-muted);
+    padding: 3px 7px;
+    font-size: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+}
+.calendar-marker-legend-dates-summary:hover {
+    color: var(--text-main);
+    border-color: var(--accent);
+}
+
+/* Détails repliés : visibles seulement si .open. */
+.calendar-marker-legend-details {
+    display: none;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    margin-top: 4px;
+    padding-top: 5px;
+    border-top: 1px dashed #2a2a2a;
+}
+.calendar-marker-legend-details.open {
+    display: grid;
+}
+.calendar-marker-legend-notes {
+    width: 100%;
+    min-width: 0;
+    resize: vertical;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 4px 5px;
+    font-size: 11px;
+    font-family: inherit;
+}
+
+/* Séparateur = vrai filet horizontal traversant, ultra-compact. */
+.calendar-marker-legend-item.separator-row {
+    grid-template-columns: minmax(0, 1fr) 24px;
+    align-items: center;
+    background: transparent;
+    border: 0;
+    padding: 6px 0 4px;
+    margin: 4px 0 2px;
+    position: relative;
+    gap: 8px;
+}
+.calendar-marker-legend-item.separator-row::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 32px;
+    top: 50%;
+    height: 1px;
+    background: linear-gradient(to right, transparent 0, #3a3a3a 8%, #3a3a3a 92%, transparent 100%);
+    pointer-events: none;
+}
+.calendar-marker-separator-label {
+    position: relative;
+    justify-self: start;
+    padding: 1px 8px;
+    background: var(--bg, #0e0e0e);
+    color: var(--text-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    cursor: text;
+    min-height: 14px;
+    line-height: 14px;
+    border-radius: 3px;
+}
+.calendar-marker-separator-label.empty::before {
+    content: "—";
+    opacity: 0.5;
+}
+.calendar-marker-legend-item.separator-row .btn-icon {
+    z-index: 1;
+    background: var(--bg, #0e0e0e);
+}
+
+.calendar-marker-notes {
+    min-width: 0;
+}
+.calendar-marker-notes summary {
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.calendar-marker-notes textarea {
+    width: 100%;
+    min-width: 0;
+    margin-top: 4px;
+    resize: vertical;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 4px;
+    font-size: 11px;
+}
+.calendar-marker-pick.active {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.calendar-marker-legend-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+.calendar-marker-legend-dates input[type="date"] {
+    width: 100%;
+    min-width: 0;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 4px;
+    font-size: 11px;
+}
+.calendar-marker-legend-head input[type="color"] {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid #333;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+}
+.calendar-marker-empty {
+    color: var(--text-muted);
+}
+.calendar-marker-editor {
+    display: grid;
+    gap: 5px;
+    max-height: 180px;
+    overflow: auto;
+    margin-top: 8px;
+}
+.calendar-marker-editor-row {
+    display: grid;
+    grid-template-columns: 34px minmax(90px, 1.1fr) 118px 118px minmax(0, 1fr) 28px;
+    gap: 6px;
+    align-items: center;
+    background: #111;
+    border: 1px solid #303030;
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 11px;
+}
+.calendar-marker-editor-row input {
+    min-width: 0;
+    width: 100%;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 5px;
+    font-size: 11px;
+}
+.calendar-marker-editor-row input[type="color"] {
+    padding: 1px;
+    height: 28px;
+}
+.calendar-marker-editor-row.separator-row {
+    border-top-color: #666;
+    background: #171717;
+}
+.profile-gallery-import {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.profile-gallery-form {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) 150px minmax(160px, 1fr);
+    gap: 8px;
+}
+.profile-gallery-content,
+.profile-gallery-section {
+    display: grid;
+    gap: 12px;
+}
+.profile-gallery-maintenance {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 8px 10px;
+    background: #101010;
+    border: 1px solid #282828;
+    border-radius: 4px;
+}
+.profile-gallery-maintenance-hint {
+    color: var(--text-muted);
+    font-size: 10px;
+    line-height: 1.3;
+}
+.profile-gallery-section h3 {
+    margin: 8px 0 0;
+    font-size: 14px;
+}
+.profile-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 10px;
+}
+.profile-gallery-card {
+    flex: none;
+    width: auto;
+}
+.profile-gallery-card input {
+    width: 100%;
+    min-width: 0;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 5px;
+    font-size: 11px;
+}
+.profile-gallery-badge {
+    max-width: 100%;
+    padding: 3px 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    color: #fff;
+    background: #334155;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.profile-gallery-badge.scheduled {
+    background: #8b1d5b;
+}
+.profile-gallery-badge.unscheduled {
+    background: #245f73;
+}
+.grid-item.dragging-to-calendar {
+    outline: 2px solid var(--accent);
+    opacity: 0.75;
+}
+.week-timeline {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+}
+.queue-list,
+.goal-list {
+    display: grid;
+    gap: 8px;
+}
+.queue-filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.queue-row,
+.goal-row {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr) 130px;
+    gap: 10px;
+    align-items: center;
+    background: #111;
+    border: 1px solid #2c2c2c;
+    border-radius: 6px;
+    padding: 9px;
+    cursor: pointer;
+}
+.queue-row {
+    grid-template-columns: 110px 78px minmax(0, 1fr) 130px;
+}
+
+@media (max-width: 720px) {
+    body.planning-open .content-wrapper,
+    body.planning-fullscreen-open .content-wrapper {
+        margin-right: 0;
+        max-width: 935px;
+        opacity: 1;
+        pointer-events: auto;
+    }
+    #planning-panel {
+        left: 10px;
+        right: 10px;
+        width: auto !important;
+        min-width: 0;
+    }
+    #planning-panel.collapsed {
+        left: auto;
+        width: 48px !important;
+        min-width: 48px;
+    }
+    .planning-resize-handle {
+        display: none;
+    }
+    .profile-photo-plan-form {
+        grid-template-columns: 1fr;
+    }
+    .calendar-marker-legend-head {
+        grid-template-columns: 22px minmax(0, 1fr) 22px 24px;
+    }
+    .calendar-marker-legend-head .calendar-marker-legend-dates-summary {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+    .calendar-marker-legend-dates {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+.queue-row input {
+    width: 100%;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 4px;
+    color: var(--text-main);
+    padding: 5px;
+}
+.queue-row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.queue-row em { color: var(--text-muted); font-style: normal; }
+.planning-context-menu {
+    position: fixed;
+    z-index: 2000;
+    min-width: 230px;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #181818;
+    box-shadow: 0 18px 45px rgba(0,0,0,0.5);
+}
+.planning-context-menu button {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: var(--text-main);
+    text-align: left;
+    cursor: pointer;
+}
+.planning-context-menu button:hover {
+    background: #242424;
+}
+.planning-context-menu button:disabled {
+    color: var(--text-muted);
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+.planning-context-menu .material-symbols-outlined {
+    font-size: 18px;
+}
+.planning-context-form {
+    display: grid;
+    gap: 7px;
+}
+.planning-context-form label {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+.planning-menu-input {
+    width: 100%;
+    min-width: 0;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 5px;
+    color: var(--text-main);
+    padding: 7px;
+}
+.planning-menu-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 4px;
+}
+.goal-row { grid-template-columns: 120px 90px minmax(0, 1fr); cursor: default; }
+.goal-bar {
+    height: 8px;
+    border-radius: 999px;
+    background: #2a2a2a;
+    overflow: hidden;
+}
+.goal-bar i {
+    display: block;
+    height: 100%;
+    background: var(--success);
+}
+.analysis-summary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.analysis-card {
+    position: relative;
+    overflow: hidden;
+    background: #111;
+    border: 1px solid #2c2c2c;
+    border-radius: 6px;
+    padding: 10px;
+}
+.analysis-card strong {
+    display: block;
+    font-size: 20px;
+}
+.analysis-card span {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.analysis-card i {
+    display: block;
+    height: 3px;
+    margin-top: 8px;
+    background: var(--accent);
+    border-radius: 999px;
+}
+.analysis-warnings {
+    display: grid;
+    gap: 8px;
+}
+
+/* Fantôme de drag & drop (SortableJS) */
+.sortable-ghost {
+    opacity: 0.4;
+    background: var(--accent) !important;
+}

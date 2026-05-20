@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+
+archives/
+static/uploads/*
+
+data/database.json
+data/safety.json
+data/active_account.json
+data/accounts/
+
+.env
+.DS_Store
+Thumbs.db
