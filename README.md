@@ -156,7 +156,7 @@ data/safety.example.json
 
 InstaLocalPlanner est un projet libre développé sur mon temps personnel. Si le logiciel vous aide à organiser votre contenu Instagram, vous pouvez soutenir son développement par un don.
 
-**Lien de soutien (PayPal) :** `PAYPAL_LINK_A_REMPLACER`
+**Lien de soutien** [PayPal](https://www.paypal.com/paypalme/NyxAwroo) 
 
 Les dons servent à financer le temps de développement, les tests, la documentation et les évolutions futures (nouvelles fonctionnalités, traductions, support).
 
